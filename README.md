@@ -22,7 +22,7 @@ RetireMe/
 Getting Started
 Build
 bash
-git clone https://github.com/yourname/RetireMe.git
+git clone https://github.com/pwscho/RetireMe.git
 cd RetireMe
 dotnet build
 Run (WPF UI)
