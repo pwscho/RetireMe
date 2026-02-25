@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="RetireMe.UI.Views.SocialSecurityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <UserControl.DataContext>
+        <Binding Path="SocialSecurityVM"/>
+    </UserControl.DataContext>
+
+    <Grid Grid.Row="2">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="40"/>
+            <!-- spacing column -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!-- Marital Status -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0 0 0 10">
+            <CheckBox Content="Married?" IsChecked="{Binding IsMarried}" VerticalAlignment="Center"/>
+        </StackPanel>
+        <!-- Primary Column -->
+        <StackPanel Grid.Column="0">
+            <TextBlock Text="Primary Earner" FontWeight="Bold" FontSize="16" Margin="0 0 0 10"/>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Name:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Primary.Owner}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Current Age:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Primary.CurrentAge}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Claim Age:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Primary.ClaimAge}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Benefit at FRA:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Primary.BenefitAtFullRetirementAge}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Death Age:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Primary.DeathAge}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Cola:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Primary.ColaRate}"/>
+            </StackPanel>
+        </StackPanel>
+        <!-- Spouse Column -->
+        <StackPanel Grid.Column="2"
+            Visibility="{Binding IsMarried, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="Spouse"
+               FontWeight="Bold"
+               FontSize="16"
+               Margin="0 0 0 10"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Name:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Spouse.Owner}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Current Age:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Spouse.CurrentAge}"/>
+            </StackPanel>
+            
+
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Claim Age:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Spouse.ClaimAge}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Benefit at FRA:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Spouse.BenefitAtFullRetirementAge}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Death Age:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Spouse.DeathAge}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
+                <TextBlock Text="Cola:" Width="150"/>
+                <TextBox Width="80" Text="{Binding Spouse.ColaRate}"/>
+            </StackPanel>
+        </StackPanel>
+
+    </Grid>
+</UserControl>
+

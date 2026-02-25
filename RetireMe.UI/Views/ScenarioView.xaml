@@ -1,0 +1,97 @@
+﻿<UserControl x:Class="RetireMe.UI.Views.ScenarioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+
+
+    <StackPanel Margin="20" Width="320">
+
+        <StackPanel Orientation="Horizontal" Margin="5"/>
+
+        <StackPanel Margin="10">
+
+            <TextBlock Text="Scenario Name"
+               FontWeight="Bold"
+               Margin="0 0 0 4"/>
+
+            <TextBox Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+
+
+
+            <!-- existing ScenarioView content continues here -->
+
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Start Year:" Width="180"/>
+            <TextBox Width="125"
+                     Text="{Binding BaseYear, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        
+        <StackPanel Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Years to Calculate:" Width="180"/>
+            <TextBox Width="125"
+                     Text="{Binding YearsToCalculate, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+        </StackPanel>
+
+
+        <StackPanel Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Annual Spending:" Width="180"/>
+            <TextBox Width="125"
+                     Text="{Binding AnnualSpending, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+            <TextBlock Text="Strategy:" Width="180" VerticalAlignment="Center" />
+
+            <ComboBox Width="125"
+              SelectedValue="{Binding SpendingStrategy, Mode=TwoWay}"
+              SelectedValuePath="Content">
+
+                <ComboBoxItem Content="Fixed" />
+                <ComboBoxItem Content="Historical" />
+            </ComboBox>
+        </StackPanel>
+
+
+        <StackPanel Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Inflation Rate:" Width="180"/>
+            <TextBox Width="125"
+                     Text="{Binding InflationRate, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="5">
+            <TextBlock Text="Last Year's Taxes:" Width="180"/>
+            <TextBox Width="125"
+                     Text="{Binding TaxesFromLastYear, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="5"/>
+
+        <!-- Rebalancing Section -->
+        <StackPanel Margin="0 20 0 0">
+
+            <CheckBox Content="Rebalance Annually"
+              IsChecked="{Binding RebalanceAnnually}"
+              Margin="5 0 0 10"/>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <TextBlock Text="Equity Allocation (%)" Width="180"/>
+                <TextBox Width="125"
+                 Text="{Binding TargetEquityPercentage, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <TextBlock Text="Bond Allocation (%)" Width="180"/>
+                <TextBox Width="125"
+                 Text="{Binding TargetBondPercentage, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+
+        </StackPanel>
+
+
+    </StackPanel>
+</UserControl>
+
+

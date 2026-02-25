@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="MarketData\MarketData.json" />
+    <None Remove="TaxData\RMD2025.json" />
+    <None Remove="TaxData\Tax2025.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="MarketData\MarketData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="RMDData\RMD2025.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TaxData\Tax2025.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Rmd\" />
+    <Folder Include="SocialSecurity\" />
+  </ItemGroup>
+
+</Project>

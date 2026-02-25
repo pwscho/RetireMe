@@ -1,0 +1,13 @@
+﻿using System.Windows.Controls;
+
+namespace RetireMe.UI.Views
+{
+    public partial class IncomeView : UserControl
+    {
+        public IncomeView()
+        {
+            InitializeComponent();
+        }
+    }
+}
+
