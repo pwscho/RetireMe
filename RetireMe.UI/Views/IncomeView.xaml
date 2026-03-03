@@ -56,7 +56,7 @@
                                     Width="80"/>
 
                 <DataGridTextColumn Header="Annual Amount"
-                                    Binding="{Binding AnnualAmount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    Binding="{Binding AnnualAmount, StringFormat=C, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                     Width="120"/>
 
                 <DataGridCheckBoxColumn Header="Taxable"

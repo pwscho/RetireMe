@@ -507,22 +507,31 @@ namespace RetireMe.Core.Engine
             // PRIMARY SOCIAL SECURITY
             // -----------------------------
             int primaryAge = _primary.CurrentAge + year;
+            bool primaryAlive = primaryAge <= _primary.DeathAge;
 
-            if (primaryAge >= _primary.ClaimAge && primaryAge <= _primary.DeathAge)
+            // Compute primary benefit for this year (even if deceased)
+            decimal primaryBenefitForSurvivor = 0m;
+            if (primaryAge >= _primary.ClaimAge)
+            {
+                primaryBenefitForSurvivor = CalculateColaAdjustedBenefit(
+                    currentAge: primaryAge,
+                    claimAge: _primary.ClaimAge,
+                    fraMonthly: _primary.BenefitAtFullRetirementAge,
+                    colaRate: _primary.Cola);
+            }
+
+            // Pay primary benefit only if alive
+            decimal primaryPaid = 0m;
+            if (primaryAlive && primaryBenefitForSurvivor > 0)
             {
                 var acct = workingAccounts.First(a =>
                     a.OwnerId == _primary.UserId &&
                     a.TaxBucket.Trim() == "Tax Free" &&
                     a.AssetClass.Trim() == "Cash");
 
-                decimal benefit = CalculateColaAdjustedBenefit(
-                    currentAge: primaryAge,
-                    claimAge: _primary.ClaimAge,
-                    fraMonthly: _primary.BenefitAtFullRetirementAge,
-                    colaRate: _primary.Cola);
-
-                acct.Value += benefit;
-                ssIncome += benefit;
+                acct.Value += primaryBenefitForSurvivor;
+                ssIncome += primaryBenefitForSurvivor;
+                primaryPaid = primaryBenefitForSurvivor;
             }
 
             // -----------------------------
@@ -548,30 +557,80 @@ namespace RetireMe.Core.Engine
             }
 
             // -----------------------------
-            // SPOUSE SOCIAL SECURITY
+            // SPOUSE + SURVIVOR BENEFITS
             // -----------------------------
             if (_spouse != null)
             {
                 int spouseAge = _spouse.CurrentAge + year;
+                bool spouseAlive = spouseAge <= _spouse.DeathAge;
 
-                if (spouseAge >= _spouse.ClaimAge && spouseAge <= _spouse.DeathAge)
+                // Compute spouse benefit for this year (even if deceased)
+                decimal spouseBenefitForSurvivor = 0m;
+                if (spouseAge >= _spouse.ClaimAge)
+                {
+                    spouseBenefitForSurvivor = CalculateColaAdjustedBenefit(
+                        currentAge: spouseAge,
+                        claimAge: _spouse.ClaimAge,
+                        fraMonthly: _spouse.BenefitAtFullRetirementAge,
+                        colaRate: _spouse.Cola);
+                }
+
+                // Pay spouse benefit only if alive
+                decimal spousePaid = 0m;
+                if (spouseAlive && spouseBenefitForSurvivor > 0)
                 {
                     var acct = workingAccounts.First(a =>
                         a.OwnerId == _spouse.UserId &&
                         a.TaxBucket.Trim() == "Tax Free" &&
                         a.AssetClass.Trim() == "Cash");
 
-                    decimal benefit = CalculateColaAdjustedBenefit(
-                        currentAge: spouseAge,
-                        claimAge: _spouse.ClaimAge,
-                        fraMonthly: _spouse.BenefitAtFullRetirementAge,
-                        colaRate: _spouse.Cola);
+                    acct.Value += spouseBenefitForSurvivor;
+                    ssIncome += spouseBenefitForSurvivor;
+                    spousePaid = spouseBenefitForSurvivor;
+                }
 
-                    acct.Value += benefit;
-                    ssIncome += benefit;
+                // -----------------------------
+                // SURVIVOR LOGIC
+                // -----------------------------
+                if (primaryAlive && !spouseAlive)
+                {
+                    // Primary survives → gets larger benefit
+                    decimal survivorBenefit = Math.Max(primaryBenefitForSurvivor, spouseBenefitForSurvivor);
+
+                    // Avoid double-paying if primary already got their own benefit
+                    decimal extra = survivorBenefit - primaryPaid;
+                    if (extra > 0)
+                    {
+                        var acct = workingAccounts.First(a =>
+                            a.OwnerId == _primary.UserId &&
+                            a.TaxBucket.Trim() == "Tax Free" &&
+                            a.AssetClass.Trim() == "Cash");
+
+                        acct.Value += extra;
+                        ssIncome += extra;
+                    }
+                }
+                else if (!primaryAlive && spouseAlive)
+                {
+                    // Spouse survives → gets larger benefit
+                    decimal survivorBenefit = Math.Max(primaryBenefitForSurvivor, spouseBenefitForSurvivor);
+
+                    // Avoid double-paying if spouse already got their own benefit
+                    decimal extra = survivorBenefit - spousePaid;
+                    if (extra > 0)
+                    {
+                        var acct = workingAccounts.First(a =>
+                            a.OwnerId == _spouse.UserId &&
+                            a.TaxBucket.Trim() == "Tax Free" &&
+                            a.AssetClass.Trim() == "Cash");
+
+                        acct.Value += extra;
+                        ssIncome += extra;
+                    }
                 }
             }
         }
+
 
         private decimal CalculateColaAdjustedBenefit(
     int currentAge,

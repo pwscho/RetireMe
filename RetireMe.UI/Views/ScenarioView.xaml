@@ -39,7 +39,7 @@
         <StackPanel Orientation="Horizontal" Margin="5">
             <TextBlock Text="Annual Spending:" Width="180"/>
             <TextBox Width="125"
-                     Text="{Binding AnnualSpending, UpdateSourceTrigger=PropertyChanged}"/>
+                     Text="{Binding AnnualSpending, StringFormat=C, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
@@ -58,13 +58,13 @@
         <StackPanel Orientation="Horizontal" Margin="5">
             <TextBlock Text="Inflation Rate:" Width="180"/>
             <TextBox Width="125"
-                     Text="{Binding InflationRate, UpdateSourceTrigger=PropertyChanged}"/>
+                     Text="{Binding InflationRate ,UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="5">
             <TextBlock Text="Last Year's Taxes:" Width="180"/>
             <TextBox Width="125"
-                     Text="{Binding TaxesFromLastYear, UpdateSourceTrigger=PropertyChanged}"/>
+                     Text="{Binding TaxesFromLastYear, StringFormat=C, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="5"/>

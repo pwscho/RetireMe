@@ -58,6 +58,11 @@ namespace RetireMe.UI.ViewModels
         public SeriesCollection StackedSpendingSeries { get; set; }
         public List<string> StackedSpendingLabels { get; set; }
         // ------------------------------------------------------------
+        // Spending Sources Summary graph
+        // ------------------------------------------------------------
+        public SeriesCollection StackedSpendingSourcesSeries { get; set; }
+        public List<string> StackedSpendingSourcesLabels { get; set; }
+        // ------------------------------------------------------------
         // Historical Chart
         // ------------------------------------------------------------
         public SeriesCollection HistoricalEndingSeries { get; set; }
@@ -154,6 +159,10 @@ namespace RetireMe.UI.ViewModels
             // Stacked Income Chart
             // ------------------------------------------------------------
             BuildStackedSpendingChart();
+            // ------------------------------------------------------------
+            // Stacked Spending Sources Chart
+            // ------------------------------------------------------------
+            BuildStackedSpendingSourcesChart();
             // ------------------------------------------------------------
             // Historical Bar Chart
             // ------------------------------------------------------------
@@ -455,7 +464,7 @@ namespace RetireMe.UI.ViewModels
             Fill = Brushes.SteelBlue,
             LineSmoothness = 0.1,
             LabelPoint = point => point.Y.ToString("C0"),
-            PointGeometry = null
+
         },
         new StackedAreaSeries
         {
@@ -464,7 +473,7 @@ namespace RetireMe.UI.ViewModels
             Fill = Brushes.ForestGreen,
             LineSmoothness = 0.1,
             LabelPoint = point => point.Y.ToString("C0"),
-            PointGeometry = null
+
         },
         new StackedAreaSeries
         {
@@ -473,12 +482,74 @@ namespace RetireMe.UI.ViewModels
             Fill = Brushes.Orange,
             LineSmoothness = 0.1,
             LabelPoint = point => point.Y.ToString("C0"),
-            PointGeometry = null
+
         }
     };
 
             OnPropertyChanged(nameof(StackedSpendingSeries));
             OnPropertyChanged(nameof(StackedSpendingLabels));
+        }
+
+        private void BuildStackedSpendingSourcesChart()
+        {
+            var grouped = FixedResults
+                .GroupBy(r => r.Year)
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            // X-axis labels
+            StackedSpendingSourcesLabels = grouped
+                .Select(g => g.Key.ToString())
+                .ToList();
+
+            // Build sequences
+            var withdrawals = grouped
+                .Select(g => g.Sum(r => (double)r.Withdrawal + (double)(r.TaxesPaid) - (double)r.SocialSecurityIncome - (double)r.Income))
+                .ToList();
+
+            var social = grouped
+                .Select(g => g.Sum(r => (double)(r.SocialSecurityIncome)))
+                .ToList();
+
+            var income = grouped
+                .Select(g => g.Sum(r => (double)r.Income))
+                .ToList();
+
+            StackedSpendingSourcesSeries = new SeriesCollection
+    {
+        new StackedAreaSeries
+        {
+            Title = "Income",
+            Values = new ChartValues<double>(income),
+            Fill = Brushes.SteelBlue,
+            LineSmoothness = 0.1,
+            LabelPoint = point => point.Y.ToString("C0"),
+
+        },
+
+
+        new StackedAreaSeries
+        {
+            Title = "Social Security",
+            Values = new ChartValues<double>(social),
+            Fill = Brushes.ForestGreen,
+            LineSmoothness = 0.1,
+            LabelPoint = point => point.Y.ToString("C0"),
+
+        },
+        new StackedAreaSeries
+        {
+            Title = "Withdrawals",
+            Values = new ChartValues<double>(withdrawals),
+            Fill = Brushes.Orange,
+            LineSmoothness = 0.1,
+            LabelPoint = point => point.Y.ToString("C0"),
+
+        }
+    };
+
+            OnPropertyChanged(nameof(StackedSpendingSourcesSeries));
+            OnPropertyChanged(nameof(StackedSpendingSourcesLabels));
         }
 
 

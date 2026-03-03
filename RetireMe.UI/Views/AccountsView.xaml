@@ -28,8 +28,8 @@
                 <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" IsReadOnly="True" />
                 <DataGridTextColumn Header="Asset Class" Binding="{Binding AssetClass}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="Tax Bucket" Binding="{Binding TaxBucket}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Value" Binding="{Binding Value}" />
-                <DataGridTextColumn Header="Cost Basis" Binding="{Binding CostBasis}" />
+                <DataGridTextColumn Header="Value" Binding="{Binding Value, StringFormat=C}" />
+                <DataGridTextColumn Header="Cost Basis" Binding="{Binding CostBasis, StringFormat=C}" />
 
                 <DataGridTextColumn Header="Rate of Return (%)"
                     Binding="{Binding RateOfReturn,
