@@ -42,7 +42,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
                 <TextBlock Text="Cola:" Width="150"/>
-                <TextBox Width="80" Text="{Binding Primary.ColaRate}"/>
+                <TextBox Width="80" Text="{Binding Primary.ColaRate, StringFormat=P}"/>
             </StackPanel>
         </StackPanel>
         <!-- Spouse Column -->
@@ -81,7 +81,7 @@
 
             <StackPanel Orientation="Horizontal" Margin="0 0 0 8">
                 <TextBlock Text="Cola:" Width="150"/>
-                <TextBox Width="80" Text="{Binding Spouse.ColaRate}"/>
+                <TextBox Width="80" Text="{Binding Spouse.ColaRate, StringFormat=P}"/>
             </StackPanel>
         </StackPanel>
 

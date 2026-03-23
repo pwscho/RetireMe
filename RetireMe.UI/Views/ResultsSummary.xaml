@@ -17,11 +17,20 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{Binding Scenario.Name}" Grid.Row="0" HorizontalAlignment="Left" Width="auto" FontWeight="Bold"
-                               FontSize="16"
-                               Margin="0 0 0 8"/>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 0 0 10">
-            <Button Content="Export to Excel" Command="{Binding ExportToExcelCommand}" Margin="0 0 10 0"/>
+        <TextBlock Text="{Binding Scenario.Name}"
+                   Grid.Row="0"
+                   HorizontalAlignment="Left"
+                   FontWeight="Bold"
+                   FontSize="16"
+                   Margin="0 0 0 8"/>
+
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0 0 0 10">
+            <Button Content="Export to Excel"
+                    Command="{Binding ExportToExcelCommand}"
+                    Margin="0 0 10 0"/>
         </StackPanel>
 
         <!-- ========================================================= -->
@@ -41,7 +50,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- FIXED -->
-                <StackPanel Grid.Row="1" Grid.Column="0">
+                <StackPanel Grid.Column="0">
                     <TextBlock Text="Fixed Simulation"
                                FontWeight="Bold"
                                FontSize="16"
@@ -50,6 +59,7 @@
                     <TextBlock Text="{Binding FixedAvgBalance, StringFormat=Avg Ending Balance: {0:C0}}"/>
                     <TextBlock Text="{Binding FixedMedBalance, StringFormat=Median Ending Balance: {0:C0}}"/>
                     <TextBlock Text="{Binding FixedTaxesPaid, StringFormat=Avg Taxes Paid: {0:C0}}"/>
+                    <TextBlock Text="{Binding FixedTotalSpending, StringFormat=Total Spending: {0:C0}}"/>
                 </StackPanel>
 
                 <!-- HISTORICAL -->
@@ -64,6 +74,7 @@
                     <TextBlock Text="{Binding SequenceTaxesPaid, StringFormat=Avg Taxes Paid: {0:C0}}"/>
                     <TextBlock Text="{Binding Sequence10thPercentile, StringFormat=10th Percentile: {0:C0}}"/>
                     <TextBlock Text="{Binding Sequence90thPercentile, StringFormat=90th Percentile: {0:C0}}"/>
+                    <TextBlock Text="{Binding HistoricalAvgTotalSpending, StringFormat=Avg Spending: {0:C0}}"/>
                 </StackPanel>
 
                 <!-- MONTE CARLO -->
@@ -78,12 +89,10 @@
                     <TextBlock Text="{Binding RandomTaxesPaid, StringFormat=Avg Taxes Paid: {0:C0}}"/>
                     <TextBlock Text="{Binding Random10thPercentile, StringFormat=10th Percentile: {0:C0}}"/>
                     <TextBlock Text="{Binding Random90thPercentile, StringFormat=90th Percentile: {0:C0}}"/>
+                    <TextBlock Text="{Binding MonteCarloAvgTotalSpending, StringFormat=Avg Spending: {0:C0}}"/>
                 </StackPanel>
             </Grid>
         </Border>
-
-
-
 
         <!-- ========================================================= -->
         <!-- TAB CONTROL WITH FOUR TABS (INCLUDING CHARTS) -->
@@ -97,24 +106,80 @@
                           IsReadOnly="True"
                           Margin="0 10 0 0">
                     <DataGrid.Columns>
+
                         <DataGridTextColumn Header="Year" Binding="{Binding Year}" />
                         <DataGridTextColumn Header="Age" Binding="{Binding AgeDisplay}" />
-                        <DataGridTextColumn Header="Start Balance" Binding="{Binding StartingBalance, StringFormat=C}" />
-                        <DataGridTextColumn Header="Income" Binding="{Binding Income, StringFormat=C}" />
-                        <DataGridTextColumn Header="Social Security" Binding="{Binding SocialSecurityIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Investment Return" Binding="{Binding InvestmentReturn, StringFormat=C}" />
-                        <DataGridTextColumn Header="Spending" Binding="{Binding Withdrawal, StringFormat=C}" />
-                        <DataGridTextColumn Header="Taxes Paid" Binding="{Binding TaxesPaid, StringFormat=C}" />
-                        <DataGridTextColumn Header="IRMAA Paid" Binding="{Binding IrmaaPaid, StringFormat=C}" />
-                        <DataGridTextColumn Header="End Balance" Binding="{Binding EndingBalance, StringFormat=C}" />
-                        <DataGridTextColumn Header="RMDs" Binding="{Binding Rmds, StringFormat=C}" />
-                        <DataGridTextColumn Header="Conversions" Binding="{Binding Conversions, StringFormat=C0}" Width="100"/>
-                        <DataGridTextColumn Header="Taxable Income" Binding="{Binding TaxableIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Ordinary Income" Binding="{Binding OrdinaryIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Capital Gains" Binding="{Binding CapitalGains, StringFormat=C}" />
-                        <DataGridTextColumn Header="Taxes Due" Binding="{Binding TaxesDue, StringFormat=C}" />
-                        <DataGridTextColumn Header="Acct Withdrawal" Binding="{Binding AccountWithdrawals, StringFormat=C}" />
-                        <DataGridTextColumn Header="Percent Withdrawal" Binding="{Binding PercentWithdrawals, StringFormat=P}" />
+
+                        <DataGridTextColumn Header="Start Balance"
+                                            Binding="{Binding StartingBalance, StringFormat=C}">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightYellow" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="+Income"
+                                            Binding="{Binding Income, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="+Social Security"
+                                            Binding="{Binding SocialSecurityIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="+Investment Return"
+                                            Binding="{Binding InvestmentReturn, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="-Spending"
+                                            Binding="{Binding Withdrawal, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="-Taxes Paid"
+                                            Binding="{Binding TaxesPaid, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="=End Balance"
+                                            Binding="{Binding EndingBalance, StringFormat=C}">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightYellow" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="IRMAA Paid"
+                                            Binding="{Binding IrmaaPaid, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="RMDs"
+                                            Binding="{Binding Rmds, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Conversions"
+                                            Binding="{Binding Conversions, StringFormat=C0}" Width="100"/>
+
+                        <DataGridTextColumn Header="Magi"
+                                            Binding="{Binding Magi, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Taxable Income"
+                                            Binding="{Binding TaxableIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Ordinary Income"
+                                            Binding="{Binding OrdinaryIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Capital Gains"
+                                            Binding="{Binding CapitalGains, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Taxes Due"
+                                            Binding="{Binding TaxesDue, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Base Spending"
+                                            Binding="{Binding BaseSpending, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Add Spending"
+                                            Binding="{Binding AddedSpending, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Acct Withdrawal"
+                                            Binding="{Binding AccountWithdrawals, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Percent Withdrawal"
+                                            Binding="{Binding PercentWithdrawals, StringFormat=P}" />
 
                     </DataGrid.Columns>
                 </DataGrid>
@@ -127,24 +192,80 @@
                           IsReadOnly="True"
                           Margin="0 10 0 0">
                     <DataGrid.Columns>
+
                         <DataGridTextColumn Header="Year" Binding="{Binding Year}" />
                         <DataGridTextColumn Header="Age" Binding="{Binding AgeDisplay}" />
-                        <DataGridTextColumn Header="Start Balance" Binding="{Binding StartingBalance, StringFormat=C}" />
-                        <DataGridTextColumn Header="Income" Binding="{Binding Income, StringFormat=C}" />
-                        <DataGridTextColumn Header="Social Security" Binding="{Binding SocialSecurityIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Investment Return" Binding="{Binding InvestmentReturn, StringFormat=C}" />
-                        <DataGridTextColumn Header="Spending" Binding="{Binding Withdrawal, StringFormat=C}" />
-                        <DataGridTextColumn Header="Taxes Paid" Binding="{Binding TaxesPaid, StringFormat=C}" />
-                        <DataGridTextColumn Header="IRMAA Paid" Binding="{Binding IrmaaPaid, StringFormat=C}" />
-                        <DataGridTextColumn Header="End Balance" Binding="{Binding EndingBalance, StringFormat=C}" />
-                        <DataGridTextColumn Header="RMDs" Binding="{Binding Rmds, StringFormat=C}" />
-                        <DataGridTextColumn Header="Conversions" Binding="{Binding Conversions, StringFormat=C0}" Width="100"/>
-                        <DataGridTextColumn Header="Taxable Income" Binding="{Binding TaxableIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Ordinary Income" Binding="{Binding OrdinaryIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Capital Gains" Binding="{Binding CapitalGains, StringFormat=C}" />
-                        <DataGridTextColumn Header="Taxes Due" Binding="{Binding TaxesDue, StringFormat=C}" />
-                        <DataGridTextColumn Header="Acct Withdrawal" Binding="{Binding AccountWithdrawals, StringFormat=C}" />
-                        <DataGridTextColumn Header="Percent Withdrawal" Binding="{Binding PercentWithdrawals, StringFormat=P}" />
+
+                        <DataGridTextColumn Header="Start Balance"
+                                            Binding="{Binding StartingBalance, StringFormat=C}">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightYellow" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="+Income"
+                                            Binding="{Binding Income, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="+Social Security"
+                                            Binding="{Binding SocialSecurityIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="+Investment Return"
+                                            Binding="{Binding InvestmentReturn, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="-Spending"
+                                            Binding="{Binding Withdrawal, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="-Taxes Paid"
+                                            Binding="{Binding TaxesPaid, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="=End Balance"
+                                            Binding="{Binding EndingBalance, StringFormat=C}">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightYellow" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="IRMAA Paid"
+                                            Binding="{Binding IrmaaPaid, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="RMDs"
+                                            Binding="{Binding Rmds, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Conversions"
+                                            Binding="{Binding Conversions, StringFormat=C0}" Width="100"/>
+
+                        <DataGridTextColumn Header="Magi"
+                                            Binding="{Binding Magi, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Taxable Income"
+                                            Binding="{Binding TaxableIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Ordinary Income"
+                                            Binding="{Binding OrdinaryIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Capital Gains"
+                                            Binding="{Binding CapitalGains, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Taxes Due"
+                                            Binding="{Binding TaxesDue, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Base Spending"
+                                            Binding="{Binding BaseSpending, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Add Spending"
+                                            Binding="{Binding AddedSpending, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Acct Withdrawal"
+                                            Binding="{Binding AccountWithdrawals, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Percent Withdrawal"
+                                            Binding="{Binding PercentWithdrawals, StringFormat=P}" />
 
                     </DataGrid.Columns>
                 </DataGrid>
@@ -157,24 +278,80 @@
                           IsReadOnly="True"
                           Margin="0 10 0 0">
                     <DataGrid.Columns>
+
                         <DataGridTextColumn Header="Year" Binding="{Binding Year}" />
                         <DataGridTextColumn Header="Age" Binding="{Binding AgeDisplay}" />
-                        <DataGridTextColumn Header="Start Balance" Binding="{Binding StartingBalance, StringFormat=C}" />
-                        <DataGridTextColumn Header="Income" Binding="{Binding Income, StringFormat=C}" />
-                        <DataGridTextColumn Header="Social Security" Binding="{Binding SocialSecurityIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Investment Return" Binding="{Binding InvestmentReturn, StringFormat=C}" />
-                        <DataGridTextColumn Header="Spending" Binding="{Binding Withdrawal, StringFormat=C}" />
-                        <DataGridTextColumn Header="Taxes Paid" Binding="{Binding TaxesPaid, StringFormat=C}" />
-                        <DataGridTextColumn Header="IRMAA Paid" Binding="{Binding IrmaaPaid, StringFormat=C}" />
-                        <DataGridTextColumn Header="End Balance" Binding="{Binding EndingBalance, StringFormat=C}" />
-                        <DataGridTextColumn Header="RMDs" Binding="{Binding Rmds, StringFormat=C}" />
-                        <DataGridTextColumn Header="Conversions" Binding="{Binding Conversions, StringFormat=C0}" Width="100"/>
-                        <DataGridTextColumn Header="Taxable Income" Binding="{Binding TaxableIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Ordinary Income" Binding="{Binding OrdinaryIncome, StringFormat=C}" />
-                        <DataGridTextColumn Header="Capital Gains" Binding="{Binding CapitalGains, StringFormat=C}" />
-                        <DataGridTextColumn Header="Taxes Due" Binding="{Binding TaxesDue, StringFormat=C}" />
-                        <DataGridTextColumn Header="Acct Withdrawal" Binding="{Binding AccountWithdrawals, StringFormat=C}" />
-                        <DataGridTextColumn Header="Percent Withdrawal" Binding="{Binding PercentWithdrawals, StringFormat=P}" />
+
+                        <DataGridTextColumn Header="Start Balance"
+                                            Binding="{Binding StartingBalance, StringFormat=C}">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightYellow" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="+Income"
+                                            Binding="{Binding Income, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="+Social Security"
+                                            Binding="{Binding SocialSecurityIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="+Investment Return"
+                                            Binding="{Binding InvestmentReturn, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="-Spending"
+                                            Binding="{Binding Withdrawal, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="-Taxes Paid"
+                                            Binding="{Binding TaxesPaid, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="=End Balance"
+                                            Binding="{Binding EndingBalance, StringFormat=C}">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="LightYellow" />
+                                    <Setter Property="Foreground" Value="Black" />
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="IRMAA Paid"
+                                            Binding="{Binding IrmaaPaid, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="RMDs"
+                                            Binding="{Binding Rmds, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Conversions"
+                                            Binding="{Binding Conversions, StringFormat=C0}" Width="100"/>
+
+                        <DataGridTextColumn Header="Magi"
+                                            Binding="{Binding Magi, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Taxable Income"
+                                            Binding="{Binding TaxableIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Ordinary Income"
+                                            Binding="{Binding OrdinaryIncome, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Capital Gains"
+                                            Binding="{Binding CapitalGains, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Taxes Due"
+                                            Binding="{Binding TaxesDue, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Base Spending"
+                                            Binding="{Binding BaseSpending, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Add Spending"
+                                            Binding="{Binding AddedSpending, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Acct Withdrawal"
+                                            Binding="{Binding AccountWithdrawals, StringFormat=C}" />
+
+                        <DataGridTextColumn Header="Percent Withdrawal"
+                                            Binding="{Binding PercentWithdrawals, StringFormat=P}" />
 
                     </DataGrid.Columns>
                 </DataGrid>

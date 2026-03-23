@@ -5,6 +5,40 @@ using System.Text.Json.Serialization;
 
 namespace RetireMe.Core
 {
+    // ============================================================
+    // GUARDRAIL SETTINGS
+    // ============================================================
+    public class GuardrailSettings
+    {
+        // Baseline Portfolio Value (used for guardrail calculations)
+        public decimal InitialPortfolioValue { get; set; } = 0m;
+
+        // Lower guardrail
+        public decimal LowerTrigger { get; set; } = 0.90m;          // 90% of initial portfolio
+        public decimal LowerCut { get; set; } = -0.02m;             // -2% inflation
+        public decimal MinSpendingFloor { get; set; } = 0.90m;      // 90% of initial spending
+
+        // Upper guardrail
+        public decimal UpperTrigger { get; set; } = 1.10m;          // 110% of initial portfolio
+        public decimal UpperBonus { get; set; } = 0.01m;            // +1% bonus inflation
+
+        public GuardrailSettings DeepCopy()
+        {
+            return new GuardrailSettings
+            {
+                InitialPortfolioValue = this.InitialPortfolioValue,
+                LowerTrigger = this.LowerTrigger,
+                LowerCut = this.LowerCut,
+                MinSpendingFloor = this.MinSpendingFloor,
+                UpperTrigger = this.UpperTrigger,
+                UpperBonus = this.UpperBonus
+            };
+        }
+    }
+
+    // ============================================================
+    // SCENARIO
+    // ============================================================
     public class Scenario
     {
         public string Name { get; set; } = "New Scenario";
@@ -35,13 +69,23 @@ namespace RetireMe.Core
         public List<WithdrawalStream> WithdrawalStreams { get; set; } = new();
         public List<RothConversionStream> RothConversions { get; set; } = new();
 
-        // Base year for tax policy lookup (but tax data is NOT stored here)
+        // Base year for tax policy lookup
         public int BaseYear { get; set; } = DateTime.Now.Year;
 
-        // RMD policy (user‑editable, so this stays)
+        // RMD policy (user‑editable)
         [JsonIgnore]
         public RmdPolicy RmdPolicy { get; set; }
 
+        // ============================================================
+        // NEW: Guardrails + Initial Portfolio Value
+        // ============================================================
+        public GuardrailSettings Guardrails { get; set; } = new GuardrailSettings();
+
+        public decimal InitialPortfolioValue { get; set; } = 0m;
+
+        // ============================================================
+        // Deep Copy
+        // ============================================================
         public Scenario DeepCopy()
         {
             return new Scenario
@@ -52,9 +96,7 @@ namespace RetireMe.Core
                 AnnualSpending = this.AnnualSpending,
                 InflationRate = this.InflationRate,
                 TaxesFromLastYear = this.TaxesFromLastYear,
-                WithdrawalAdjustmentRate = this.WithdrawalAdjustmentRate,  // not used
-
-                
+                WithdrawalAdjustmentRate = this.WithdrawalAdjustmentRate,
 
                 RebalanceAnnually = this.RebalanceAnnually,
                 TargetEquityPercentage = this.TargetEquityPercentage,
@@ -63,6 +105,10 @@ namespace RetireMe.Core
                 BaseYear = this.BaseYear,
 
                 RmdPolicy = this.RmdPolicy, // if mutable, consider cloning
+
+                InitialPortfolioValue = this.InitialPortfolioValue,
+
+                Guardrails = this.Guardrails.DeepCopy(),
 
                 IncomeStreams = this.IncomeStreams
                     .Select(i => new IncomeStream
@@ -97,7 +143,6 @@ namespace RetireMe.Core
                         AnnualAmount = r.AnnualAmount
                     })
                     .ToList()
-
             };
         }
     }

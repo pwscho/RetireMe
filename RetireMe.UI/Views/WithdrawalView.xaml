@@ -4,9 +4,6 @@
 
     <StackPanel Margin="10">
 
-        <!-- TEMP DEBUG -->
-        <TextBlock Text="{Binding}" Foreground="Red" />
-
 
         <DataGrid ItemsSource="{Binding WithdrawalStreams}"
                   AutoGenerateColumns="False"

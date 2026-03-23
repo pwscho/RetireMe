@@ -37,26 +37,32 @@
 
 
         <StackPanel Orientation="Horizontal" Margin="5">
-            <TextBlock Text="Annual Spending:" Width="180"/>
+            <TextBlock Text="Base Annual Spending:" Width="180"/>
             <TextBox Width="125"
                      Text="{Binding AnnualSpending, StringFormat=C, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
-            <TextBlock Text="Strategy:" Width="180" VerticalAlignment="Center" />
+            <TextBlock Text="Spending/Inflation Strategy:" Width="180" VerticalAlignment="Center" />
 
-            <ComboBox Width="125"
-              SelectedValue="{Binding SpendingStrategy, Mode=TwoWay}"
-              SelectedValuePath="Content">
-
-                <ComboBoxItem Content="Fixed" />
-                <ComboBoxItem Content="Historical" />
+            <ComboBox Width="100"
+          SelectedValue="{Binding SpendingStrategy, Mode=TwoWay}"
+          SelectedValuePath="Content">
+                <ComboBoxItem Content="Fixed"/>
+                <ComboBoxItem Content="Historical"/>
+                <ComboBoxItem Content="Guardrails"/>
             </ComboBox>
+
+            <Button Content=".."
+                    Command="{Binding GuardrailEditorWindow}"
+                    Width="20"
+                    Margin="5 0 0 0"/>
+
         </StackPanel>
 
 
         <StackPanel Orientation="Horizontal" Margin="5">
-            <TextBlock Text="Inflation Rate:" Width="180"/>
+            <TextBlock Text="Fixed Inflation Rate:" Width="180"/>
             <TextBox Width="125"
                      Text="{Binding InflationRate ,UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>

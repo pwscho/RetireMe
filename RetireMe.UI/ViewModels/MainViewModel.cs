@@ -26,7 +26,7 @@ namespace RetireMe.UI.ViewModels
 
         public SocialSecurityHouseholdViewModel SocialSecurityVM { get; private set; }
 
-        public RelayCommand RunSimulationCommand { get; }
+        public ICommand RunSimulationCommand { get; }
         public RelayCommand SaveCommand { get; }
         public ICommand RunReportCommand { get; }
 
@@ -70,9 +70,10 @@ namespace RetireMe.UI.ViewModels
                 }
             };
 
-            RunSimulationCommand = new RelayCommand(RunSimulation);
+            RunSimulationCommand = new AsyncRelayCommand(RunSimulation);
             SaveCommand = new RelayCommand(SaveScenario);
-            RunReportCommand = new RelayCommand(RunReport);
+            RunReportCommand = new AsyncRelayCommand(RunReport);
+
         }
 
         private void LoadScenario(ScenarioState scenario)
@@ -183,62 +184,90 @@ namespace RetireMe.UI.ViewModels
             DataService.Save(_state);
         }
 
-        private void RunReport()
+        private async Task RunReport()
         {
             if (ScenarioVM == null || AccountsVM == null || SocialSecurityVM == null)
                 return;
 
-            var builder = new ReportBuilder();
+            var busy = new RetireMe.UI.Views.BusyWindow()
+            {
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+            busy.Show();
 
-            var report = builder.BuildReport(
-                ScenarioVM.Scenario,
-                AccountsVM.Accounts.ToList(),
-                SocialSecurityVM.Primary.Settings,
-                SocialSecurityVM.IsMarried ? SocialSecurityVM.Spouse?.Settings : null,
-                MarketHistoryLoader.Load(),
-                monteCarloCount: 1000);  
+            // Allow WPF to render the BusyWindow before heavy work starts
+            await Task.Yield();
 
-            var vm = new ResultsSummaryViewModel(report);
+            try
+            {
+                // Run the heavy report generation OFF the UI thread
+                var report = await Task.Run(() =>
+                {
+                    var builder = new ReportBuilder();
 
-            var window = new ResultsSummary(vm);
-            window.Show();
+                    return builder.BuildReport(
+                        ScenarioVM.Scenario,
+                        AccountsVM.Accounts.ToList(),
+                        SocialSecurityVM.Primary.Settings,
+                        SocialSecurityVM.IsMarried ? SocialSecurityVM.Spouse?.Settings : null,
+                        MarketHistoryLoader.Load(),
+                        monteCarloCount: 1000
+                    );
+                });
+
+                // Back on UI thread: show the results window
+                var vm = new ResultsSummaryViewModel(report);
+                var window = new ResultsSummary(vm);
+                window.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Report failed:\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            finally
+            {
+                busy.Close();
+            }
         }
 
         // ---------------------------------------------------------------------
         // NEW FLAT SIMULATION ENGINE
         // ---------------------------------------------------------------------
-        private void RunSimulation()
+        private async Task RunSimulation()
         {
             if (ScenarioVM == null || AccountsVM == null || SocialSecurityVM == null)
                 return;
 
+
             try
             {
-                var engine = new ComputeEngine(
-                    ScenarioVM.Scenario,
-                    AccountsVM.Accounts.ToList(),
-                    new FixedMarketService(),
-                    SocialSecurityVM.Primary.Settings,
-                    SocialSecurityVM.IsMarried ? SocialSecurityVM.Spouse?.Settings : null
-                );
+                // Run ComputeEngine.Run() on a background thread
+                var output = await Task.Run(() =>
+                {
+                    var engine = new ComputeEngine(
+                        ScenarioVM.Scenario,
+                        AccountsVM.Accounts.ToList(),
+                        new FixedMarketService(),
+                        SocialSecurityVM.Primary.Settings,
+                        SocialSecurityVM.IsMarried ? SocialSecurityVM.Spouse?.Settings : null
+                    );
 
-                // NEW: SimulationOutput
-                var output = engine.Run(1, "fixed");
+                    return engine.Run(1, "fixed");
+                });
 
+                // UI updates
                 Results.Clear();
                 AccountBalances.Clear();
                 AccountSummary.Clear();
 
-                // -------------------------------
-                // 1. Add year-level results
-                // -------------------------------
                 foreach (var row in output.Results)
-                    
                     Results.Add(row);
 
-                // -------------------------------
-                // 2. Add per-account balances
-                // -------------------------------
                 foreach (var acct in output.Accounts)
                 {
                     AccountBalances.Add(new AccountBalanceRow
@@ -255,9 +284,6 @@ namespace RetireMe.UI.ViewModels
                     });
                 }
 
-                // -------------------------------
-                // 3. Build summary pivot
-                // -------------------------------
                 var years = output.Accounts
                     .Select(a => a.Year)
                     .Distinct()
@@ -273,12 +299,10 @@ namespace RetireMe.UI.ViewModels
 
                     foreach (var g in groups)
                         summaryRow.Totals[g.Key] = g.Sum(a => a.EndingValue);
-                    
 
                     AccountSummary.Add(summaryRow);
                 }
 
-                // Build summary grid columns once per simulation run
                 var resultsView = FindResultsView(Application.Current.MainWindow);
                 resultsView?.BuildSummaryColumns();
             }
@@ -290,7 +314,12 @@ namespace RetireMe.UI.ViewModels
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
+            finally
+            {
+
+            }
         }
+
 
         private ResultsView FindResultsView(DependencyObject parent)
         {

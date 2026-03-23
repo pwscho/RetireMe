@@ -25,7 +25,6 @@ namespace RetireMe.UI.ViewModels
         public List<ResultRow> HistoricalResults { get; }
         public List<ResultRow> MonteCarloResults { get; }
 
-
         // ------------------------------------------------------------
         // Bindable Lists (for DataGrids)
         // ------------------------------------------------------------
@@ -47,21 +46,25 @@ namespace RetireMe.UI.ViewModels
         public Func<double, string> CurrencyFormatter { get; set; }
 
         public List<HistogramBin> MonteCarloEndingBalanceHistogram { get; }
+
         // ------------------------------------------------------------
         // Income Summary graph
         // ------------------------------------------------------------
         public SeriesCollection StackedIncomeSeries { get; set; }
         public List<string> StackedIncomeLabels { get; set; }
+
         // ------------------------------------------------------------
         // Spending Summary graph
         // ------------------------------------------------------------
         public SeriesCollection StackedSpendingSeries { get; set; }
         public List<string> StackedSpendingLabels { get; set; }
+
         // ------------------------------------------------------------
         // Spending Sources Summary graph
         // ------------------------------------------------------------
         public SeriesCollection StackedSpendingSourcesSeries { get; set; }
         public List<string> StackedSpendingSourcesLabels { get; set; }
+
         // ------------------------------------------------------------
         // Historical Chart
         // ------------------------------------------------------------
@@ -94,8 +97,14 @@ namespace RetireMe.UI.ViewModels
         public decimal SequenceTaxesPaid { get; }
         public decimal RandomTaxesPaid { get; }
 
-        public ICommand ExportToExcelCommand { get; }
+        // ------------------------------------------------------------
+        // Total Spending Summary (per-sim total, averaged if many sims)
+        // ------------------------------------------------------------
+        public decimal FixedTotalSpending { get; }
+        public decimal HistoricalAvgTotalSpending { get; }
+        public decimal MonteCarloAvgTotalSpending { get; }
 
+        public ICommand ExportToExcelCommand { get; }
 
         // ------------------------------------------------------------
         // Constructor
@@ -131,6 +140,11 @@ namespace RetireMe.UI.ViewModels
             SequenceTaxesPaid = ComputeAverageTaxes(HistoricalResults);
             RandomTaxesPaid = ComputeAverageTaxes(MonteCarloResults);
 
+            // Total spending (Withdrawal + TaxesPaid + IrmaaPaid), per sim, then averaged
+            FixedTotalSpending = ComputeAverageTotalSpending(FixedResults);
+            HistoricalAvgTotalSpending = ComputeAverageTotalSpending(HistoricalResults);
+            MonteCarloAvgTotalSpending = ComputeAverageTotalSpending(MonteCarloResults);
+
             // ------------------------------------------------------------
             // Monte Carlo Histogram (with Winsorization)
             // ------------------------------------------------------------
@@ -156,7 +170,7 @@ namespace RetireMe.UI.ViewModels
             // ------------------------------------------------------------
             BuildStackedIncomeChart();
             // ------------------------------------------------------------
-            // Stacked Income Chart
+            // Stacked Spending Chart
             // ------------------------------------------------------------
             BuildStackedSpendingChart();
             // ------------------------------------------------------------
@@ -170,7 +184,6 @@ namespace RetireMe.UI.ViewModels
 
             // Excel Export Command
             ExportToExcelCommand = new RelayCommand(ExportToExcel);
-
         }
 
         // ------------------------------------------------------------
@@ -261,7 +274,25 @@ namespace RetireMe.UI.ViewModels
                 .Select(sim => sim.Sum(x => x.TaxesPaid))
                 .Average();
         }
-        // Charts for Monte Carlo Results
+
+        // ------------------------------------------------------------
+        // Total spending per sim (Withdrawal + TaxesPaid + IrmaaPaid),
+        // then averaged across sims
+        // ------------------------------------------------------------
+        private decimal ComputeAverageTotalSpending(List<ResultRow> list)
+        {
+            if (list == null || list.Count == 0)
+                return 0;
+
+            return list
+                .GroupBy(r => r.SimNo)
+                .Select(sim =>
+                    sim.Sum(x =>
+                        x.Withdrawal 
+                        ))
+                .Average();
+        }
+
         // ------------------------------------------------------------
         // Histogram Builder (LiveCharts)
         // ------------------------------------------------------------
@@ -289,7 +320,6 @@ namespace RetireMe.UI.ViewModels
                     Fill = System.Windows.Media.Brushes.SteelBlue,
                     StrokeThickness = 0,
                     MaxColumnWidth = 20
-                    
                 }
             };
         }
@@ -368,9 +398,6 @@ namespace RetireMe.UI.ViewModels
             CurrencyFormatter = value => value.ToString("C0");
         }
 
-        // Stacked income chart
-
-
         private void BuildStackedIncomeChart()
         {
             var grouped = FixedResults
@@ -396,39 +423,37 @@ namespace RetireMe.UI.ViewModels
                 .Select(g => g.Sum(r => (double)r.SocialSecurityIncome))
                 .ToList();
 
-
             StackedIncomeSeries = new SeriesCollection
-    {
-        new StackedAreaSeries
-        {
-            Title = "Income",
-            Values = new ChartValues<double>(income),
-            Fill = Brushes.SteelBlue,
-            LabelPoint = point => point.Y.ToString("C0"),
-            LineSmoothness = 0.1
-        },
-        new StackedAreaSeries
-        {
-            Title = "Investment Return",
-            Values = new ChartValues<double>(investmentReturn),
-            Fill = Brushes.ForestGreen,
-            LabelPoint = point => point.Y.ToString("C0"),
-            LineSmoothness = 0.1
-        },
-        new StackedAreaSeries
-        {
-            Title = "Social Security",
-            Values = new ChartValues<double>(socialSecurity),
-            Fill = Brushes.Orange,
-            LabelPoint = point => point.Y.ToString("C0"),
-            LineSmoothness = 0.1
-        }
-    };
+            {
+                new StackedAreaSeries
+                {
+                    Title = "Income",
+                    Values = new ChartValues<double>(income),
+                    Fill = Brushes.SteelBlue,
+                    LabelPoint = point => point.Y.ToString("C0"),
+                    LineSmoothness = 0.1
+                },
+                new StackedAreaSeries
+                {
+                    Title = "Investment Return",
+                    Values = new ChartValues<double>(investmentReturn),
+                    Fill = Brushes.ForestGreen,
+                    LabelPoint = point => point.Y.ToString("C0"),
+                    LineSmoothness = 0.1
+                },
+                new StackedAreaSeries
+                {
+                    Title = "Social Security",
+                    Values = new ChartValues<double>(socialSecurity),
+                    Fill = Brushes.Orange,
+                    LabelPoint = point => point.Y.ToString("C0"),
+                    LineSmoothness = 0.1
+                }
+            };
 
             OnPropertyChanged(nameof(StackedIncomeSeries));
             OnPropertyChanged(nameof(StackedIncomeLabels));
         }
-
 
         private void BuildStackedSpendingChart()
         {
@@ -456,35 +481,32 @@ namespace RetireMe.UI.ViewModels
                 .ToList();
 
             StackedSpendingSeries = new SeriesCollection
-    {
-        new StackedAreaSeries
-        {
-            Title = "Withdrawals",
-            Values = new ChartValues<double>(withdrawals),            
-            Fill = Brushes.SteelBlue,
-            LineSmoothness = 0.1,
-            LabelPoint = point => point.Y.ToString("C0"),
-
-        },
-        new StackedAreaSeries
-        {
-            Title = "Taxes Paid",
-            Values = new ChartValues<double>(taxesPaid),
-            Fill = Brushes.ForestGreen,
-            LineSmoothness = 0.1,
-            LabelPoint = point => point.Y.ToString("C0"),
-
-        },
-        new StackedAreaSeries
-        {
-            Title = "IRMAA Paid",
-            Values = new ChartValues<double>(irmaaPaid),
-            Fill = Brushes.Orange,
-            LineSmoothness = 0.1,
-            LabelPoint = point => point.Y.ToString("C0"),
-
-        }
-    };
+            {
+                new StackedAreaSeries
+                {
+                    Title = "Withdrawals",
+                    Values = new ChartValues<double>(withdrawals),
+                    Fill = Brushes.SteelBlue,
+                    LineSmoothness = 0.1,
+                    LabelPoint = point => point.Y.ToString("C0")
+                },
+                new StackedAreaSeries
+                {
+                    Title = "Taxes Paid",
+                    Values = new ChartValues<double>(taxesPaid),
+                    Fill = Brushes.ForestGreen,
+                    LineSmoothness = 0.1,
+                    LabelPoint = point => point.Y.ToString("C0")
+                },
+                new StackedAreaSeries
+                {
+                    Title = "IRMAA Paid",
+                    Values = new ChartValues<double>(irmaaPaid),
+                    Fill = Brushes.Orange,
+                    LineSmoothness = 0.1,
+                    LabelPoint = point => point.Y.ToString("C0")
+                }
+            };
 
             OnPropertyChanged(nameof(StackedSpendingSeries));
             OnPropertyChanged(nameof(StackedSpendingLabels));
@@ -504,7 +526,11 @@ namespace RetireMe.UI.ViewModels
 
             // Build sequences
             var withdrawals = grouped
-                .Select(g => g.Sum(r => (double)r.Withdrawal + (double)(r.TaxesPaid) - (double)r.SocialSecurityIncome - (double)r.Income))
+                .Select(g => g.Sum(r =>
+                    (double)r.Withdrawal +
+                    (double)r.TaxesPaid -
+                    (double)r.SocialSecurityIncome -
+                    (double)r.Income))
                 .ToList();
 
             var social = grouped
@@ -516,42 +542,36 @@ namespace RetireMe.UI.ViewModels
                 .ToList();
 
             StackedSpendingSourcesSeries = new SeriesCollection
-    {
-        new StackedAreaSeries
-        {
-            Title = "Income",
-            Values = new ChartValues<double>(income),
-            Fill = Brushes.SteelBlue,
-            LineSmoothness = 0.1,
-            LabelPoint = point => point.Y.ToString("C0"),
-
-        },
-
-
-        new StackedAreaSeries
-        {
-            Title = "Social Security",
-            Values = new ChartValues<double>(social),
-            Fill = Brushes.ForestGreen,
-            LineSmoothness = 0.1,
-            LabelPoint = point => point.Y.ToString("C0"),
-
-        },
-        new StackedAreaSeries
-        {
-            Title = "Withdrawals",
-            Values = new ChartValues<double>(withdrawals),
-            Fill = Brushes.Orange,
-            LineSmoothness = 0.1,
-            LabelPoint = point => point.Y.ToString("C0"),
-
-        }
-    };
+            {
+                new StackedAreaSeries
+                {
+                    Title = "Income",
+                    Values = new ChartValues<double>(income),
+                    Fill = Brushes.SteelBlue,
+                    LineSmoothness = 0.1,
+                    LabelPoint = point => point.Y.ToString("C0")
+                },
+                new StackedAreaSeries
+                {
+                    Title = "Social Security",
+                    Values = new ChartValues<double>(social),
+                    Fill = Brushes.ForestGreen,
+                    LineSmoothness = 0.1,
+                    LabelPoint = point => point.Y.ToString("C0")
+                },
+                new StackedAreaSeries
+                {
+                    Title = "Withdrawals",
+                    Values = new ChartValues<double>(withdrawals),
+                    Fill = Brushes.Orange,
+                    LineSmoothness = 0.1,
+                    LabelPoint = point => point.Y.ToString("C0")
+                }
+            };
 
             OnPropertyChanged(nameof(StackedSpendingSourcesSeries));
             OnPropertyChanged(nameof(StackedSpendingSourcesLabels));
         }
-
 
         public void BuildHistoricalEndingBalanceChart()
         {
@@ -582,17 +602,17 @@ namespace RetireMe.UI.ViewModels
 
             // 4. Build the bar series
             HistoricalEndingSeries = new SeriesCollection
-    {
-        new ColumnSeries
-        {
-            Title = "Ending Balance",
-            Values = new ChartValues<double>(endingBalances),
-            Fill = new SolidColorBrush(Color.FromArgb(200, 70, 130, 180)),
-            Stroke = Brushes.SteelBlue,
-            StrokeThickness = 2,
-            LabelPoint = point => point.Y.ToString("C0")
-        }
-    };
+            {
+                new ColumnSeries
+                {
+                    Title = "Ending Balance",
+                    Values = new ChartValues<double>(endingBalances),
+                    Fill = new SolidColorBrush(Color.FromArgb(200, 70, 130, 180)),
+                    Stroke = Brushes.SteelBlue,
+                    StrokeThickness = 2,
+                    LabelPoint = point => point.Y.ToString("C0")
+                }
+            };
 
             OnPropertyChanged(nameof(HistoricalEndingSeries));
             OnPropertyChanged(nameof(HistoricalEndingLabels));
@@ -645,7 +665,7 @@ namespace RetireMe.UI.ViewModels
             }
         }
 
-            private void WriteResultRowsSheet(XLWorkbook wb, string sheetName, List<ResultRow> rows)
+        private void WriteResultRowsSheet(XLWorkbook wb, string sheetName, List<ResultRow> rows)
         {
             var ws = wb.Worksheets.Add(sheetName);
 
@@ -702,10 +722,9 @@ namespace RetireMe.UI.ViewModels
             ws.Columns().AdjustToContents();
             ws.SheetView.FreezeRows(1);
         }
-
     }
-
 }
+
 
 
 

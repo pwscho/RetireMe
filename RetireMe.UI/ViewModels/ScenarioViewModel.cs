@@ -1,5 +1,9 @@
 ﻿using RetireMe.Core;
+using RetireMe.UI.Views;
+using System;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
 
 namespace RetireMe.UI.ViewModels
 {
@@ -7,12 +11,22 @@ namespace RetireMe.UI.ViewModels
     {
         private readonly ScenarioState _state;
 
+        private string _previousStrategy;
+
+        public ICommand GuardrailEditorWindow { get; }
+
+
         public ScenarioViewModel(ScenarioState state)
         {
             _state = state;
 
             IncomeVM = new IncomeViewModel(_state.Scenario);
             WithdrawalsVM = new WithdrawalsViewModel(_state.Scenario);
+
+            _previousStrategy = _state.Scenario.SpendingStrategy;
+
+            // Excel Export Command
+            GuardrailEditorWindow= new RelayCommand(OpenGuardrailEditor);
         }
 
         public Scenario Scenario => _state.Scenario;
@@ -27,7 +41,6 @@ namespace RetireMe.UI.ViewModels
                     _state.Name = value;
                     OnPropertyChanged();
                 }
-               
             }
         }
 
@@ -82,15 +95,45 @@ namespace RetireMe.UI.ViewModels
             }
         }
 
+        // ============================================================
+        // UPDATED: Spending Strategy with Guardrail Popup Logic
+        // ============================================================
         public string SpendingStrategy
         {
             get => Scenario.SpendingStrategy;
             set
             {
-                Scenario.SpendingStrategy = value;
-                OnPropertyChanged();
+                if (Scenario.SpendingStrategy != value)
+                {
+                    _previousStrategy = Scenario.SpendingStrategy;
+                    Scenario.SpendingStrategy = value;
+                    OnPropertyChanged();
+                   
+                    if (value == "Guardrails")
+                        OpenGuardrailEditor();
+                }
             }
         }
+
+        private void OpenGuardrailEditor()
+        {
+            var vm = new GuardrailEditorViewModel(Scenario.Guardrails);
+            var window = new GuardrailEditorWindow(vm)
+            {
+                Owner = Application.Current.MainWindow
+            };
+
+            bool? result = window.ShowDialog();
+
+            if (result != true)
+            {
+                // User cancelled → revert strategy
+                Scenario.SpendingStrategy = _previousStrategy;
+                OnPropertyChanged(nameof(SpendingStrategy));
+            }
+        }
+
+        // ============================================================
 
         public decimal InflationRate
         {
@@ -111,7 +154,6 @@ namespace RetireMe.UI.ViewModels
                 OnPropertyChanged();
             }
         }
-
 
         public decimal WithdrawalAdjustmentRate
         {
