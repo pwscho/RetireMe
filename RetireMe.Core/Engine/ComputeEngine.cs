@@ -64,6 +64,7 @@ namespace RetireMe.Core.Engine
 
             var output = new SimulationOutput();
 
+
             // Load RMD policy once
             var rmdPolicy = RmdPolicyLoader.LoadForYear(_scenario.BaseYear);
 
@@ -76,6 +77,12 @@ namespace RetireMe.Core.Engine
 
             for (int year = 0; year < years; year++)
             {
+                // Capture initial portfolio value once at the start of the simulation
+                if (year == 0)
+                {
+                     //_scenario.InitialPortfolioValue = workingAccounts.Sum(a => a.Value);
+                }
+
                 _tax = new TaxYearAccumulator();
                 var deferredWithdrawnThisYear = new Dictionary<Guid, decimal>();
 
@@ -140,6 +147,7 @@ namespace RetireMe.Core.Engine
                     case "Fixed":
                         _inflationrate = _scenario.InflationRate;
                         break;
+
                     case "Historical":
                         if (simulation == "fixed")
                         {
@@ -149,7 +157,15 @@ namespace RetireMe.Core.Engine
                         _inflationrate = _growth.GetInflation(year);
                         break;
 
+                    case "Guardrails":
+                        _inflationrate = ApplyGuardrails(
+                            year,
+                            startingBalance,
+                            baseSpending,
+                            _scenario);
+                        break;
                 }
+
 
                 decimal addedSpending = 0;
                 foreach (var w in _scenario.WithdrawalStreams)
@@ -806,6 +822,48 @@ namespace RetireMe.Core.Engine
         }
 
 
+        private decimal ApplyGuardrails(
+    int year,
+    decimal portfolioValue,
+    decimal currentBaseSpending,
+    Scenario scenario)
+        {
+            var g = scenario.Guardrails;
+
+            decimal initialPortfolio = scenario.InitialPortfolioValue;
+            decimal initialSpending = scenario.AnnualSpending;
+
+            if (initialPortfolio <= 0)
+                return scenario.InflationRate;
+
+            decimal pct = portfolioValue / initialPortfolio;
+
+            // LOWER GUARDRAIL
+            if (pct < g.LowerTrigger)
+            {
+                // First year below trigger → freeze inflation
+                if (year == 0 || pct >= g.LowerTrigger)
+                    return 0m;
+
+                // Continued decline → negative inflation
+                decimal newSpending = currentBaseSpending * (1 + g.LowerCut);
+
+                // Enforce minimum floor
+                decimal minAllowed = initialSpending * g.MinSpendingFloor;
+
+                if (newSpending < minAllowed)
+                    return (minAllowed / currentBaseSpending) - 1m;
+
+                return g.LowerCut;
+            }
+
+            // UPPER GUARDRAIL
+            if (pct > g.UpperTrigger)
+                return scenario.InflationRate + g.UpperBonus;
+
+            // Normal inflation
+            return scenario.InflationRate;
+        }
 
 
         private void TransferAccountsOnDeath(
